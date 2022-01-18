@@ -1,5 +1,5 @@
 name:                orthotope
-version:             0.1.1.0
+version:             0.1.2.0
 synopsis:            Multidimensional arrays inspired by APL
 license:             Apache
 license-file:        LICENSE
@@ -35,6 +35,7 @@ library
                      , Data.Array.RankedU
                      , Data.Array.Shape
                      , Data.Array.Shaped
+                     , Data.Array.Shaped.Instances
                      , Data.Array.ShapedG
                      , Data.Array.ShapedS
                      , Data.Array.ShapedU
