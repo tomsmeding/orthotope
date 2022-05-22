@@ -136,7 +136,7 @@ fromVector = A . G.fromVector
 normalize :: (Unbox a, Shape sh) => Array sh a -> Array sh a
 normalize = A . G.normalize . unA
 
--- | Change the shape of an array.  Fails if the arrays have different number of elements.
+-- | Change the shape of an array.  Type error if the arrays have different number of elements.
 -- O(n) or O(1) time.
 reshape :: forall sh' sh a . (Unbox a, Shape sh, Shape sh', Size sh ~ Size sh') =>
            Array sh a -> Array sh' a
