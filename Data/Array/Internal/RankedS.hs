@@ -108,23 +108,27 @@ index a = A . G.index (unA a)
 
 -- | Convert to a list with the elements in the linearization order.
 -- O(n) time.
+{-# INLINABLE toList #-}
 toList :: (Unbox a) => Array n a -> [a]
 toList = G.toList . unA
 
 -- | Convert from a list with the elements given in the linearization order.
 -- Fails if the given shape does not have the same number of elements as the list.
 -- O(n) time.
+{-# INLINABLE fromList #-}
 fromList :: (Unbox a, KnownNat n) => ShapeL -> [a] -> Array n a
 fromList ss = A . G.fromList ss
 
 -- | Convert to a vector with the elements in the linearization order.
 -- O(n) or O(1) time (the latter if the vector is already in the linearization order).
+{-# INLINABLE toVector #-}
 toVector :: (Unbox a) => Array n a -> V.Vector a
 toVector = G.toVector . unA
 
 -- | Convert from a vector with the elements given in the linearization order.
 -- Fails if the given shape does not have the same number of elements as the list.
 -- O(1) time.
+{-# INLINABLE fromVector #-}
 fromVector :: (Unbox a, KnownNat n) => ShapeL -> V.Vector a -> Array n a
 fromVector ss = A . G.fromVector ss
 
@@ -210,12 +214,14 @@ concatOuter = A . G.concatOuter . coerce
 -- | Turn a rank-1 array of arrays into a single array by making the outer array into the outermost
 -- dimension of the result array.  All the arrays must have the same shape.
 -- O(n) time.
+{-# INLINABLE ravel #-}
 ravel :: (Unbox a, KnownNat (1+n)) =>
          R.Array 1 (Array n a) -> Array (1+n) a
 ravel = A . G.ravel . G.mapA unA . R.unA
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@.
+{-# INLINABLE unravel #-}
 unravel :: (Unbox a) =>
            Array (1+n) a -> R.Array 1 (Array n a)
 unravel = R.A . G.mapA A . G.unravel . unA
