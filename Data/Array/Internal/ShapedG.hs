@@ -107,7 +107,7 @@ size _ = sizeP (Proxy :: Proxy sh)
 shapeL :: forall sh v a . (Shape sh) => Array sh v a -> ShapeL
 shapeL _ = shapeP (Proxy :: Proxy sh)
 
--- | The rank of an array, i.e., the number if dimensions it has.
+-- | The rank of an array, i.e., the number of dimensions it has.
 -- O(1) time.
 {-# INLINE rank #-}
 rank :: forall sh v a . (Shape sh, KnownNat (Rank sh)) => Array sh v a -> Int

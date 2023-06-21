@@ -103,7 +103,7 @@ size = product . shapeL
 shapeL :: Array n v a -> ShapeL
 shapeL (A s _) = s
 
--- | The rank of an array, i.e., the number if dimensions it has.
+-- | The rank of an array, i.e., the number of dimensions it has.
 -- O(1) time.
 {-# INLINE rank #-}
 rank :: forall n v a . (KnownNat n) => Array n v a -> Int
@@ -367,8 +367,8 @@ rotate k a = rerank @d @p @(p + 1) f a
 
 -- | Extract a slice of an array.
 -- The first argument is a list of (offset, length) pairs.
--- The length of the slicing argument must not exceed the rank of the arrar.
--- The extracted slice mul fall within the array dimensions.
+-- The length of the slicing argument must not exceed the rank of the array.
+-- The extracted slice must fall within the array dimensions.
 -- E.g. @slice [1,2] (fromList [4] [1,2,3,4]) == [2,3]@.
 -- O(1) time.
 {-# INLINE slice #-}
