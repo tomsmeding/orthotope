@@ -107,7 +107,7 @@ size _ = sizeP (Proxy :: Proxy sh)
 shapeL :: forall sh v a . (Shape sh) => Array sh v a -> ShapeL
 shapeL _ = shapeP (Proxy :: Proxy sh)
 
--- | The rank of an array, i.e., the number if dimensions it has.
+-- | The rank of an array, i.e., the number of dimensions it has.
 -- O(1) time.
 {-# INLINE rank #-}
 rank :: forall sh v a . (Shape sh, KnownNat (Rank sh)) => Array sh v a -> Int
@@ -172,14 +172,14 @@ normalize = fromVector . toVector
 reshape :: forall sh' sh v a .
            (Vector v, VecElem v a, Shape sh, Shape sh', Size sh ~ Size sh') =>
            Array sh v a -> Array sh' v a
-reshape a = reshape' (shapeL a) (shapeP (Proxy :: Proxy sh')) a
+reshape a = reshape' (shapeP (Proxy :: Proxy sh')) (shapeL a) a
 
 reshape' :: (Vector v, VecElem v a) =>
             ShapeL -> ShapeL -> Array sh v a -> Array sh' v a
 reshape' sh sh' (A t@(T ost oo v))
   | vLength v == 1 = A $ T (map (const 0) sh) 0 v  -- Fast special case for singleton vector
-  | Just nst <- simpleReshape ost sh sh' = A $ T nst oo v
-  | otherwise = A $ fromVectorT sh' $ toVectorT sh t
+  | Just nst <- simpleReshape ost sh' sh = A $ T nst oo v
+  | otherwise = A $ fromVectorT sh $ toVectorT sh' t
 
 -- | Change the size of dimensions with size 1.  These dimension can be changed to any size.
 -- All other dimensions must remain the same.

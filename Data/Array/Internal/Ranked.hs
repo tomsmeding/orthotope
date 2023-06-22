@@ -92,7 +92,7 @@ size = product . shapeL
 shapeL :: Array n a -> ShapeL
 shapeL = G.shapeL . unA
 
--- | The rank of an array, i.e., the number if dimensions it has,
+-- | The rank of an array, i.e., the number of dimensions it has,
 -- which is the @n@ in @Array n a@.
 -- O(1) time.
 rank :: (KnownNat n) => Array n a -> Int

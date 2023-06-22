@@ -96,7 +96,7 @@ size = G.size . unA
 shapeL :: (Shape sh) => Array sh a -> ShapeL
 shapeL = G.shapeL . unA
 
--- | The rank of an array, i.e., the number if dimensions it has,
+-- | The rank of an array, i.e., the number of dimensions it has,
 -- which is the @n@ in @Array n a@.
 -- O(1) time.
 rank :: (Shape sh, KnownNat (Rank sh)) => Array sh a -> Int
@@ -109,23 +109,27 @@ index a = A . G.index (unA a)
 
 -- | Convert to a list with the elements in the linearization order.
 -- O(n) time.
+{-# INLINABLE toList #-}
 toList :: forall sh a . (Unbox a, Shape sh) => Array sh a -> [a]
 toList = G.toList . unA
 
 -- | Convert from a list with the elements given in the linearization order.
 -- Fails if the given shape does not have the same number of elements as the list.
 -- O(n) time.
+{-# INLINABLE fromList #-}
 fromList :: forall sh a . (HasCallStack, Unbox a, Shape sh) => [a] -> Array sh a
 fromList = A . G.fromList
 
 -- | Convert to a vector with the elements in the linearization order.
 -- O(n) or O(1) time (the latter if the vector is already in the linearization order).
+{-# INLINABLE toVector #-}
 toVector :: (Unbox a, Shape sh) => Array sh a -> V.Vector a
 toVector = G.toVector . unA
 
 -- | Convert from a vector with the elements given in the linearization order.
 -- Fails if the given shape does not have the same number of elements as the list.
 -- O(1) time.
+{-# INLINABLE fromVector #-}
 fromVector :: forall sh a . (HasCallStack, Unbox a, Shape sh) => V.Vector a -> Array sh a
 fromVector = A . G.fromVector
 
@@ -208,12 +212,14 @@ append x y = A $ G.append (unA x) (unA y)
 -- | Turn a rank-1 array of arrays into a single array by making the outer array into the outermost
 -- dimension of the result array.  All the arrays must have the same shape.
 -- O(n) time.
+{-# INLINABLE ravel #-}
 ravel :: (Unbox a, Shape sh, KnownNat s) =>
          S.Array '[s] (Array sh a) -> Array (s:sh) a
 ravel = A . G.ravel . G.mapA unA . S.unA
 
 -- | Turn an array into a nested array, this is the inverse of 'ravel'.
 -- I.e., @ravel . unravel == id@.
+{-# INLINABLE unravel #-}
 unravel :: (Unbox a, Shape sh, KnownNat s) =>
            Array (s:sh) a -> S.Array '[s] (Array sh a)
 unravel = S.A . G.mapA A . G.unravel . unA
@@ -240,8 +246,8 @@ stride = A . G.stride @ts . unA
 
 -- | Extract a slice of an array.
 -- The first argument is a list of (offset, length) pairs.
--- The length of the slicing argument must not exceed the rank of the arrar.
--- The extracted slice mul fall within the array dimensions.
+-- The length of the slicing argument must not exceed the rank of the array.
+-- The extracted slice must fall within the array dimensions.
 -- E.g. @slice [1,2] (fromList [4] [1,2,3,4]) == [2,3]@.
 -- O(1) time.
 slice :: forall sl sh' sh a .
