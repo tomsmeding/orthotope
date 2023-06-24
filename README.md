@@ -84,6 +84,8 @@ the first argument is the shape of the array.
 fromList [2,3] [1,2,3,4,5,6]
 > shapeL m
 [2,3]
+> rank m
+2
 > size m
 6
 ```
@@ -116,4 +118,135 @@ We can have an arbitrary number of dimensions.
 13 14 15 16
 17 18 19 20
 21 22 23 24
+```
+
+Indexing into an array removes the outermost dimension of it by selecting a subarray with the given index.
+
+```
+> pp $ index v 1
+8
+> shapeL $ index v 1
+[]
+> pp $ index a 1
+13 14 15 16
+17 18 19 20
+21 22 23 24
+> pp $ a `index` 1 `index` 2 `index` 0
+21
+```
+
+The `scalar` and `unScalar` functions can be used to convert an element to/from and array.
+```
+> :type scalar 42
+scalar 42 :: Num a => Array a
+> :type index v 1
+index v 1 :: Num a => Array a
+> :type unScalar (index v 1)
+unScalar (index v 1) :: Num a => a
+```
+
+The `constant` function makes an array with all identical elements.
+
+```
+> pp $ constant [2,3] 8
+8 8 8
+8 8 8
+```
+
+Arrays are also instances of `Functor`, `Foldable`, and `Traversable`.
+
+```
+> pp $ fmap succ v
+ 8  9 10
+foldr (+) 0 a
+300
+```
+
+The `transpose` operation can be used to rearrange the dimensions of an array.
+The first argument describes how to transpose.
+
+```
+> shapeL a
+[2,3,4]
+> shapeL (transpose [1,0,2] a)
+[3,2,4]
+> pp $ transpose [1,0,2] a
+ 1  2  3  4
+13 14 15 16
+
+ 5  6  7  8
+17 18 19 20
+
+ 9 10 11 12
+21 22 23 24
+```
+
+The `reshape` operation keeps the elements of an array,
+but changes its shape.
+
+```
+> pp $ reshape [3,8] a
+ 1  2  3  4  5  6  7  8
+ 9 10 11 12 13 14 15 16
+17 18 19 20 21 22 23 24
+```
+
+
+
+### Similar examples using `Shaped`
+
+```
+> import Data.Array.Shaped
+> :set -XDataKinds
+> :set -XTypeApplications
+```
+
+The shape is now given by the type.
+
+```
+> m :: Array [2,3] Integer; m = fromList [1..6]
+> m
+fromList @[2,3] [1,2,3,4,5,6]
+> shapeL m
+[2,3]
+> rank m
+2
+> size m
+6
+```
+
+The type information can be given in different ways.
+
+```
+> s :: Array '[] Integer; s = fromList [42]
+> v = fromList [7,8,9] :: Array '[3] Integer
+> m = fromList @[2,3,4] [1..24]
+```
+
+There are also numeric instances for shaped arrays.
+They allow pointwise arithmetic on arrays with the same shape.
+Numeric constants are automatically of the right shape.
+
+```
+> import Data.Array.Shaped.Instances
+> pp $ v * 2
+14 16 18
+> pp $ a + a
+ 2  4  6  8
+10 12 14 16
+18 20 22 24
+
+26 28 30 32
+34 36 38 40
+42 44 46 48
+```
+
+What is value arguments for `Dynamic` arrays sometimes turn into type arguments
+for shaped arrays.
+
+```
+> pp $ reshape @[3,8] a
+ 1  2  3  4  5  6  7  8
+ 9 10 11 12 13 14 15 16
+17 18 19 20 21 22 23 24
 ```
