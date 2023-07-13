@@ -430,7 +430,7 @@ anyA p a@(A t) = anyT (shapeL a) p t
 -- | Test if the predicate holds for all elements.
 {-# INLINE allA #-}
 allA :: (Vector v, VecElem v a, Shape sh) => (a -> Bool) -> Array sh v a -> Bool
-allA p a@(A t) = anyT (shapeL a) p t
+allA p a@(A t) = allT (shapeL a) p t
 
 -- | Put the dimensions of the argument into the specified dimensions,
 -- and just replicate the data along all other dimensions.
