@@ -141,6 +141,7 @@ normalize = A . G.normalize . unA
 
 -- | Change the shape of an array.  Fails if the arrays have different number of elements.
 -- O(n) or O(1) time.
+{-# INLINABLE reshape #-}
 reshape :: (Unbox a, KnownNat n, KnownNat n') => ShapeL -> Array n a -> Array n' a
 reshape s = A . G.reshape s . unA
 
@@ -171,6 +172,7 @@ constant sh = A . G.constant sh
 
 -- | Map over the array elements.
 -- O(n) time.
+{-# INLINABLE mapA #-}
 mapA :: (Unbox a, Unbox b) =>
         (a -> b) -> Array n a -> Array n b
 mapA f = A . G.mapA f . unA
@@ -196,12 +198,14 @@ pad ps v = A . G.pad ps v . unA
 -- Fails if the transposition argument is not a permutation of the numbers
 -- [0..r-1], where r is the rank of the array.
 -- O(1) time.
+{-# INLINABLE transpose #-}
 transpose :: (KnownNat n) => [Int] -> Array n a -> Array n a
 transpose is = A . G.transpose is . unA
 
 -- | Append two arrays along the outermost dimension.
 -- All dimensions, except the outermost, must be the same.
 -- O(n) time.
+{-# INLINABLE append #-}
 append :: (Unbox a, KnownNat n) => Array n a -> Array n a -> Array n a
 append x y = A $ G.append (unA x) (unA y)
 

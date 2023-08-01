@@ -395,6 +395,7 @@ rerank f (A sh t) =
   subArraysT osh t
   where (osh, ish) = splitAt (valueOf @n) sh
 
+{-# INLINABLE ravelOuter #-}
 ravelOuter :: (Vector v, VecElem v a, KnownNat m) => ShapeL -> [Array n v a] -> Array m v a
 ravelOuter _ [] = error "ravelOuter: empty list"
 ravelOuter osh as | not $ allSame shs = error $ "ravelOuter: non-conforming inner dimensions: " ++ show shs
