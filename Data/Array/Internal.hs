@@ -144,6 +144,7 @@ badShape = any (< 0)
 
 -- When shapes match, we can be efficient and use loop-fused comparisons instead
 -- of materializing a list.
+{-# INLINABLE equalT #-}
 equalT :: (Vector v, VecElem v a, Eq a, Eq (v a))
                   => ShapeL -> T v a -> T v a -> Bool
 equalT s x y | strides x == strides y
@@ -152,6 +153,7 @@ equalT s x y | strides x == strides y
              | otherwise = toVectorT s x == toVectorT s y
 
 -- Note this assumes the shape is the same for both Vectors.
+{-# INLINABLE compareT #-}
 compareT :: (Vector v, VecElem v a, Ord a, Ord (v a))
             => ShapeL -> T v a -> T v a -> Ordering
 compareT s x y = compare (toVectorT s x) (toVectorT s y)
