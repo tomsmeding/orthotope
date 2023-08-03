@@ -92,7 +92,7 @@ fromList [2,3] [1,2,3,4,5,6]
 
 Arrays can be pretty printed.  They are shown in the APL way:
 The innermost dimension on a line, the next dimension vertically,
-the next dimension vertically with an empty line in betwee, and so on.
+the next dimension vertically with an empty line in between, and so on.
 
 ```
 > pp m
