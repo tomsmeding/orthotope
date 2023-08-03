@@ -1,5 +1,5 @@
 name:                orthotope
-version:             0.1.4.0
+version:             0.1.4.1
 synopsis:            Multidimensional arrays inspired by APL
 license:             Apache
 license-file:        LICENSE
@@ -87,9 +87,9 @@ test-suite tests
     base,
     deepseq,
     orthotope,
+    QuickCheck,
+    vector,
     HUnit                      >= 1.6.2 && < 1.7,
     test-framework             >= 0.8.2 && < 0.9,
     test-framework-hunit       >= 0.3.0 && < 0.4,
-    test-framework-quickcheck2 >= 0.3.0 && < 0.4,
-    QuickCheck >= 2.4.0.1,
-    vector
+    test-framework-quickcheck2 >= 0.3.0 && < 0.4
