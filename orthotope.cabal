@@ -5,6 +5,7 @@ license:             Apache
 license-file:        LICENSE
 copyright:           2018 Google Inc
 category:            array
+author:              lennart@augustsson.net
 maintainer:          lennart@augustsson.net
 description:         Multidimensional arrays inspired by APL.
                      The library contains a wide variety of structural
