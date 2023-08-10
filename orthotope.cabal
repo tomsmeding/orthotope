@@ -1,5 +1,5 @@
 name:                orthotope
-version:             0.1.4.2
+version:             0.1.5.0
 synopsis:            Multidimensional arrays inspired by APL
 license:             Apache
 license-file:        LICENSE
@@ -76,10 +76,13 @@ test-suite tests
 
   other-modules:       DynamicTest
                      , DynamicUTest
+                     , DynamicSTest
                      , RankedTest
                      , RankedUTest
+                     , RankedSTest
                      , ShapedTest
                      , ShapedUTest
+                     , ShapedSTest
 
   ghc-options:
     -Wall -rtsopts
