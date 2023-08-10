@@ -400,8 +400,8 @@ ppT
   => PrettyLevel -> Rational -> ShapeL -> T v a -> Doc
 ppT l p sh = maybeParens (p > 10) . vcat' . map text .  box boxMode . ppT_ (prettyShowL l) sh
   where boxMode | l >= prettyNormal = BoxMode True True True
-  		| otherwise = BoxMode False False False
-	vcat' = foldl' ($+$) empty
+                | otherwise = BoxMode False False False
+        vcat' = foldl' ($+$) empty
 
 ppT_
   :: (Vector v, VecElem v a)
@@ -431,13 +431,13 @@ box BoxMode{..} s =
   let bar | _bmUnicode = '\x2502'
           | otherwise = '|'
       dash | _bmUnicode = '\x2500'
-      	   | otherwise = '-'
+           | otherwise = '-'
       ls = lines s
       ls' | _bmBars = map (\ l -> if null l then l else [bar] ++ l ++ [bar]) ls
           | otherwise = ls
       h = replicate (length (head ls)) dash
       t | _bmUnicode = "\x250c" ++ h ++ "\x2510"
-      	| otherwise = "+" ++ h ++ "+"
+        | otherwise = "+" ++ h ++ "+"
       b | _bmUnicode = "\x2514" ++ h ++ "\x2518"
         | otherwise = t
       ls'' | _bmHeader = [t] ++ ls' ++ [b]
