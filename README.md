@@ -93,11 +93,15 @@ fromList [2,3] [1,2,3,4,5,6]
 Arrays can be pretty printed.  They are shown in the APL way:
 The innermost dimension on a line, the next dimension vertically,
 the next dimension vertically with an empty line in between, and so on.
+Normally there is a box drawn around the array, but this can be changed by lowering
+pretty printing level to `pPrintPrec`.
 
 ```
 > pp m
-1 2 3
-4 5 6
+┌─────┐
+│1 2 3│
+│4 5 6│
+└─────┘
 ```
 
 We can have an arbitrary number of dimensions.
@@ -107,9 +111,13 @@ We can have an arbitrary number of dimensions.
 > v = fromList [3] [7,8,9]
 > a = fromList [2,3,4] [1..24]
 > pp s
-42
+┌──┐
+│42│
+└──┘
 > pp v
-7 8 9
+┌─────┐
+│7 8 9│
+└─────┘
 > pp a
 ┌───────────┐
 │ 1  2  3  4│
@@ -126,15 +134,21 @@ Indexing into an array removes the outermost dimension of it by selecting a suba
 
 ```
 > pp $ index v 1
-8
+┌─┐
+│8│
+└─┘
 > shapeL $ index v 1
 []
 > pp $ index a 1
-13 14 15 16
-17 18 19 20
-21 22 23 24
+┌───────────┐
+│13 14 15 16│
+│17 18 19 20│
+│21 22 23 24│
+└───────────┘
 > pp $ a `index` 1 `index` 2 `index` 0
-21
+┌──┐
+│21│
+└──┘
 ```
 
 The `scalar` and `unScalar` functions can be used to convert an element to/from and array.
@@ -151,16 +165,20 @@ The `constant` function makes an array with all identical elements.
 
 ```
 > pp $ constant [2,3] 8
-8 8 8
-8 8 8
+┌─────┐
+│8 8 8│
+│8 8 8│
+└─────┘
 ```
 
 Arrays are also instances of `Functor`, `Foldable`, and `Traversable`.
 
 ```
 > pp $ fmap succ v
- 8  9 10
-foldr (+) 0 a
+┌────────┐
+│ 8  9 10│
+└────────┘
+> foldr (+) 0 a
 300
 ```
 
@@ -173,14 +191,16 @@ The first argument describes how to transpose.
 > shapeL (transpose [1,0,2] a)
 [3,2,4]
 > pp $ transpose [1,0,2] a
- 1  2  3  4
-13 14 15 16
-
- 5  6  7  8
-17 18 19 20
-
- 9 10 11 12
-21 22 23 24
+┌───────────┐
+│ 1  2  3  4│
+│13 14 15 16│
+│           │
+│ 5  6  7  8│
+│17 18 19 20│
+│           │
+│ 9 10 11 12│
+│21 22 23 24│
+└───────────┘
 ```
 
 The `reshape` operation keeps the elements of an array,
@@ -188,11 +208,68 @@ but changes its shape.
 
 ```
 > pp $ reshape [3,8] a
- 1  2  3  4  5  6  7  8
- 9 10 11 12 13 14 15 16
-17 18 19 20 21 22 23 24
+┌───────────────────────┐
+│ 1  2  3  4  5  6  7  8│
+│ 9 10 11 12 13 14 15 16│
+│17 18 19 20 21 22 23 24│
+└───────────────────────┘
 ```
 
+An array can be turned into an array of arrays, where the outermost
+array will have rank 1.
+```
+> pp $ unravel a
+┌───────────────────────────┐
+│┌───────────┐ ┌───────────┐│
+││ 1  2  3  4│ │13 14 15 16││
+││ 5  6  7  8│ │17 18 19 20││
+││ 9 10 11 12│ │21 22 23 24││
+│└───────────┘ └───────────┘│
+└───────────────────────────┘
+```
+
+The `foldr` operation reduces an array to something of the element type.
+Using `reduce` you will instead get an array result.
+```
+> pp $ reduce (+) 0 a
+┌───┐
+│300│
+└───┘
+```
+
+Note how this operated on the entire array.  Using `rerank` it is possible
+to use a function "deeper down".
+```
+> pp $ rerank 1 (reduce (+) 0) a
+┌───────┐
+│ 78 222│
+└───────┘
+> pp $ rerank 2 (reduce (+) 0) a
+┌────────┐
+│10 26 42│
+│58 74 90│
+└────────┘
+> pp $ rerank 3 (reduce (+) 0) a
+┌───────────┐
+│ 1  2  3  4│
+│ 5  6  7  8│
+│ 9 10 11 12│
+│           │
+│13 14 15 16│
+│17 18 19 20│
+│21 22 23 24│
+└───────────┘
+```
+
+To reduce along some dimension(s) that are not the innermost we can make them innermost by transpostion.
+So to sum the columns:
+```
+> pp $ rerank 2 (reduce (+) 0) $ transpose [0,2,1] a
+┌───────────┐
+│15 18 21 24│
+│51 54 57 60│
+└───────────┘
+```
 
 
 ### Similar examples using `Shaped`
@@ -232,15 +309,19 @@ Numeric constants are automatically of the right shape.
 ```
 > import Data.Array.Shaped.Instances
 > pp $ v * 2
-14 16 18
+┌────────┐
+│14 16 18│
+└────────┘
 > pp $ a + a
- 2  4  6  8
-10 12 14 16
-18 20 22 24
-
-26 28 30 32
-34 36 38 40
-42 44 46 48
+┌───────────┐
+│ 2  4  6  8│
+│10 12 14 16│
+│18 20 22 24│
+│           │
+│26 28 30 32│
+│34 36 38 40│
+│42 44 46 48│
+└───────────┘
 ```
 
 What is value arguments for `Dynamic` arrays sometimes turn into type arguments
@@ -248,8 +329,10 @@ for shaped arrays.
 
 ```
 > pp $ reshape @[3,8] a
- 1  2  3  4  5  6  7  8
- 9 10 11 12 13 14 15 16
-17 18 19 20 21 22 23 24
+┌───────────────────────┐
+│ 1  2  3  4  5  6  7  8│
+│ 9 10 11 12 13 14 15 16│
+│17 18 19 20 21 22 23 24│
+└───────────────────────┘
 ```
 
