@@ -115,9 +115,6 @@ instance Vector [] where
 prettyShowL :: (Pretty a) => PrettyLevel -> a -> String
 prettyShowL l = render . pPrintPrec l 0
 
--- We expect all N to be non-negative, but we use Int for convenience.
-type N = Int
-
 -- | The type /T/ is the internal type of arrays.  In general,
 -- operations on /T/ do no sanity checking as that should be done
 -- at the point of call.
@@ -128,8 +125,8 @@ type N = Int
 -- To find where item /i,j/ of the two outermost dimensions is you
 -- calculate vector index @offset + i*strides[0] + j*strides[1]@, etc.
 data T v a = T
-    { strides :: [N]      -- length is tensor rank
-    , offset  :: !N       -- offset into vector of values
+    { strides :: ![Int]   -- length is tensor rank
+    , offset  :: !Int     -- offset into vector of values
     , values  :: !(v a)   -- actual values
     }
     deriving (Show, Generic, Data)
@@ -143,7 +140,9 @@ badShape :: ShapeL -> Bool
 badShape = any (< 0)
 
 -- When shapes match, we can be efficient and use loop-fused comparisons instead
--- of materializing a list.
+-- of materializing a vector.
+-- Note this assumes the shape is the same for both Vectors.
+-- TODO(augustss): if the array is a small fraction of the vector this can be inefficient.
 {-# INLINABLE equalT #-}
 equalT :: (Vector v, VecElem v a, Eq a, Eq (v a))
                   => ShapeL -> T v a -> T v a -> Bool
@@ -161,7 +160,7 @@ compareT s x y = compare (toVectorT s x) (toVectorT s y)
 -- Given the dimensions, return the stride in the underlying vector
 -- for each dimension.  The first element of the list is the total length.
 {-# INLINE getStridesT #-}
-getStridesT :: ShapeL -> [N]
+getStridesT :: ShapeL -> [Int]
 getStridesT = scanr (*) 1
 
 -- Convert an array to a list by indexing through all the elements.
@@ -186,7 +185,7 @@ toListT sh a@(T ss0 o0 v)
 -- | Check if the strides are canonical, i.e., if the vector have the natural layout.
 -- XXX Copy special cases from Tensor.
 {-# INLINE isCanonicalT #-}
-isCanonicalT :: (Vector v, VecElem v a) => [N] -> T v a -> Bool
+isCanonicalT :: (Vector v, VecElem v a) => [Int] -> T v a -> Bool
 isCanonicalT (n:ss') (T ss o v) =
     o == 0 &&         -- Vector offset is 0
     ss == ss' &&      -- All strides are normal
@@ -239,13 +238,14 @@ toVectorT sh a@(T ats ao v) =
 
 -- Convert to a vector containing the right elements,
 -- but not necessarily in the right order.
+-- This is used for reduction with commutative&associative operations.
 {-# INLINE toUnorderedVectorT #-}
 toUnorderedVectorT :: (Vector v, VecElem v a) => ShapeL -> T v a -> v a
 toUnorderedVectorT sh a@(T ats ao v) =
   -- Figure out if the array maps onto some contiguous slice of the vector.
   -- Do this by checking if a transposition of the array corresponds to
   -- normal strides.
-  -- First sort the strides in descending order, amnd rearrange the shape the same way.
+  -- First sort the strides in descending order, and rearrange the shape the same way.
   -- Then compute the strides from this rearranged shape; these will be the normal
   -- strides for this shape.  If these strides agree with the sorted actual strides
   -- it is a transposition, and we can just slice out the relevant piece of the vector.
@@ -265,12 +265,12 @@ fromVectorT sh = T (tail $ getStridesT sh) 0
 
 -- Convert from a list
 {-# INLINE fromListT #-}
-fromListT :: (Vector v, VecElem v a) => [N] -> [a] -> T v a
+fromListT :: (Vector v, VecElem v a) => [Int] -> [a] -> T v a
 fromListT sh = fromVectorT sh . vFromList
 
 -- Index into the outermost dimension of an array.
 {-# INLINE indexT #-}
-indexT :: T v a -> N -> T v a
+indexT :: T v a -> Int -> T v a
 indexT (T (s : ss) o v) i = T ss (o + i * s) v
 indexT _ _ = error "impossible"
 
@@ -358,7 +358,7 @@ subArraysT sh ten = sub sh ten []
 
 -- Reverse the given dimensions.
 {-# INLINE reverseT #-}
-reverseT :: [N] -> ShapeL -> T v a -> T v a
+reverseT :: [Int] -> ShapeL -> T v a -> T v a
 reverseT rs sh (T ats ao v) = T rts ro v
   where (ro, rts) = rev 0 sh ats
         rev !_ [] [] = (ao, [])
@@ -414,7 +414,7 @@ ppT_ show_ sh t = revDropWhile (== '\n') $ showsT sh t' ""
         t' :: T [] String
         t' = T (tail (getStridesT sh)) 0 ss'
 
-showsT :: [N] -> T [] String -> ShowS
+showsT :: [Int] -> T [] String -> ShowS
 showsT (0:_)  _ = showString "EMPTY"
 showsT []     t = showString $ unScalarT t
 showsT s@[_]  t = showString $ unwords $ toListT s t
@@ -462,7 +462,7 @@ padT v aps ash at = (ss, fromVectorT ss $ vConcat $ pad' aps ash st at)
 -- size 1, in which case it can be done by just manipulating
 -- the strides.  Given the old strides, the old shapes, and the
 -- new shape it will return the possible new strides.
-simpleReshape :: [N] -> ShapeL -> ShapeL -> Maybe [N]
+simpleReshape :: [Int] -> ShapeL -> ShapeL -> Maybe [Int]
 simpleReshape osts os ns
   | filter (1 /=) os == filter (1 /=) ns = Just $ loop ns sts'
     -- Old and new dimensions agree where they are not 1.
@@ -476,18 +476,22 @@ simpleReshape osts os ns
       loop _ _ = error $ "simpleReshape: shouldn't happen: " ++ show (osts, os, ns)
 simpleReshape _ _ _ = Nothing
 
+-- Note: assumes + is commutative&associative.
 {-# INLINE sumT #-}
 sumT :: (Vector v, VecElem v a, Num a) => ShapeL -> T v a -> a
 sumT sh = vSum . toUnorderedVectorT sh
 
+-- Note: assumes * is commutative&associative.
 {-# INLINE productT #-}
 productT :: (Vector v, VecElem v a, Num a) => ShapeL -> T v a -> a
 productT sh = vProduct . toUnorderedVectorT sh
 
+-- Note: assumes max is commutative&associative.
 {-# INLINE maximumT #-}
 maximumT :: (Vector v, VecElem v a, Ord a) => ShapeL -> T v a -> a
 maximumT sh = vMaximum . toUnorderedVectorT sh
 
+-- Note: assumes min is commutative&associative.
 {-# INLINE minimumT #-}
 minimumT :: (Vector v, VecElem v a, Ord a) => ShapeL -> T v a -> a
 minimumT sh = vMinimum . toUnorderedVectorT sh
