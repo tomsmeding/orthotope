@@ -63,7 +63,7 @@ import Text.PrettyPrint.HughesPJClass hiding ((<>))
 import Data.Array.Internal
 
 -- | Arrays stored in a /v/ with values of type /a/.
-data Array (n :: Nat) v a = A ShapeL (T v a)
+data Array (n :: Nat) v a = A !ShapeL !(T v a)
   deriving (Generic, Data)
 
 instance (Vector v, Show a, VecElem v a) => Show (Array n v a) where
