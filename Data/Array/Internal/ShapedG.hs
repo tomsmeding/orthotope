@@ -123,7 +123,7 @@ index (A t) i | i < 0 || i >= s = error $ "index: out of bounds " ++ show i ++ "
   where s = valueOf @s
 
 -- | Convert to a list with the elements in the linearization order.
--- O(1) time.
+-- O(n) time.
 {-# INLINE toList #-}
 toList :: (Vector v, VecElem v a, Shape sh) => Array sh v a -> [a]
 toList a@(A t) = toListT (shapeL a) t

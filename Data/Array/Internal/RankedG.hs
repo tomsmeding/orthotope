@@ -91,6 +91,7 @@ instance (NFData (v a)) => NFData (Array n v a) where
   rnf (A sh v) = rnf sh `seq` rnf v
 
 -- | The number of elements in the array.
+-- O(1) time.
 {-# INLINE size #-}
 size :: Array n v a -> Int
 size = product . shapeL
@@ -118,7 +119,7 @@ index (A (s:ss) t) i | i < 0 || i >= s = error $ "index: out of bounds " ++ show
 index (A [] _) _ = error "index: scalar"
 
 -- | Convert to a list with the elements in the linearization order.
--- O(1) time.
+-- O(n) time.
 {-# INLINE toList #-}
 toList :: (Vector v, VecElem v a) => Array n v a -> [a]
 toList (A sh t) = toListT sh t
