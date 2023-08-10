@@ -30,7 +30,7 @@ import Control.DeepSeq
 import Data.Data(Data)
 import qualified Data.DList as DL
 import Data.Kind (Type)
-import Data.List(foldl', zipWith4, zipWith5, sortBy, sortOn)
+import Data.List(foldl', zipWith4, zipWith5, sortBy, sortOn, foldl1')
 import Data.Proxy
 import GHC.Exts(Constraint, build)
 import GHC.Generics(Generic)
@@ -395,44 +395,76 @@ allSameT sh t@(T _ _ v)
         !x = vIndex v' 0
     in  vAll (x ==) v'
 
+newtype Rect = Rect { unRect :: [String] }  -- A rectangle of text
+
+toRect :: String -> Rect
+toRect = Rect . lines
+
+fromRect :: Rect -> String
+fromRect (Rect ls) = unlines ls
+
+-- Make each Rect be of size h * w
+rectPad :: Int -> Int -> Rect -> Rect
+rectPad h w (Rect ls) = Rect $ map padL ls ++ replicate (h - length ls) mt
+  where mt = replicate w ' '
+        padL s = replicate (w - length s) ' ' ++ s
+
+-- Horizontal catenation.  Assumes input rectangle are padded.
+-- Adds empty space between Rects.
+hcatRect :: Rect -> Rect -> Rect
+hcatRect (Rect xs) (Rect ys) = Rect $ zipWith (\ x y -> x ++ " " ++ y) xs ys
+
+-- Vertical catenation.  Assumes input rectangle are padded.
+-- Adds no space between Rects.
+vcatRect :: Rect -> Rect -> Rect
+vcatRect (Rect xs) (Rect ys) = Rect $ xs ++ ys
+
+rectHeight :: Rect -> Int
+rectHeight = length . unRect
+
+-- Widest line
+rectWidth :: Rect -> Int
+rectWidth = maximum . (0:) . map length . unRect
+
 ppT
   :: (Vector v, VecElem v a, Pretty a)
   => PrettyLevel -> Rational -> ShapeL -> T v a -> Doc
-ppT l p sh = maybeParens (p > 10) . vcat' . map text .  box boxMode . ppT_ (prettyShowL l) sh
+ppT l p sh = maybeParens (p > 10) . vcat' . map text . unRect . box boxMode . ppT_ (prettyShowL l) sh
   where boxMode | l >= prettyNormal = BoxMode True True True
                 | otherwise = BoxMode False False False
         vcat' = foldl' ($+$) empty
 
 ppT_
   :: (Vector v, VecElem v a)
-  => (a -> String) -> ShapeL -> T v a -> String
-ppT_ show_ sh t = revDropWhile (== '\n') $ showsT sh t' ""
-  where ss = map show_ $ toListT sh t
-        n = maximum $ map length ss
-        ss' = map padSP ss
-        padSP s = replicate (n - length s) ' ' ++ s
-        t' :: T [] String
+  => (a -> String) -> ShapeL -> T v a -> Rect
+ppT_ show_ sh t = showsT sh t'
+  where ss = map (toRect . show_) $ toListT sh t
+        maxH = maximum $ map rectHeight ss
+        maxW = maximum $ map rectWidth ss
+        ss' = map (rectPad maxH maxW) ss
+        t' :: T [] Rect
         t' = T (tail (getStridesT sh)) 0 ss'
 
-showsT :: [Int] -> T [] String -> ShowS
-showsT (0:_)  _ = showString "EMPTY"
-showsT []     t = showString $ unScalarT t
-showsT s@[_]  t = showString $ unwords $ toListT s t
-showsT (n:ns) t =
-    foldr (.) id [ showsT ns (indexT t i) . showString "\n" | i <- [0..n-1] ]
+showsT :: [Int] -> T [] Rect -> Rect
+showsT []     t = unScalarT t
+showsT s@[_]  t = foldl1' hcatRect $ toListT s t
+showsT (n:ns) t = foldl1' vcat' rs
+  where vcat' x y = vcatRect x (vcatRect spc y)
+        spc = Rect $ replicate (length ns - 1) (replicate (rectWidth (head rs)) ' ')
+        rs = [ showsT ns (indexT t i) | i <- [0..n-1] ]
 
 data BoxMode = BoxMode { _bmBars, _bmUnicode, _bmHeader :: Bool }
 
 prettyBoxMode :: BoxMode
 prettyBoxMode = BoxMode False False False
 
-box :: BoxMode -> String -> [String]
-box BoxMode{..} s =
+-- Possibly draw a box around a (padded) rectangle.
+box :: BoxMode -> Rect -> Rect
+box BoxMode{..} (Rect ls) =
   let bar | _bmUnicode = '\x2502'
           | otherwise = '|'
       dash | _bmUnicode = '\x2500'
            | otherwise = '-'
-      ls = lines s
       ls' | _bmBars = map (\ l -> if null l then l else [bar] ++ l ++ [bar]) ls
           | otherwise = ls
       h = replicate (length (head ls)) dash
@@ -442,7 +474,7 @@ box BoxMode{..} s =
         | otherwise = t
       ls'' | _bmHeader = [t] ++ ls' ++ [b]
            | otherwise = ls'
-  in  ls''
+  in  Rect ls''
 
 zipWithLong2 :: (a -> b -> b) -> [a] -> [b] -> [b]
 zipWithLong2 f (a:as) (b:bs) = f a b : zipWithLong2 f as bs
