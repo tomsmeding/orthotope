@@ -111,13 +111,15 @@ We can have an arbitrary number of dimensions.
 > pp v
 7 8 9
 > pp a
- 1  2  3  4
- 5  6  7  8
- 9 10 11 12
-
-13 14 15 16
-17 18 19 20
-21 22 23 24
+┌───────────┐
+│ 1  2  3  4│
+│ 5  6  7  8│
+│ 9 10 11 12│
+│           │
+│13 14 15 16│
+│17 18 19 20│
+│21 22 23 24│
+└───────────┘
 ```
 
 Indexing into an array removes the outermost dimension of it by selecting a subarray with the given index.
