@@ -67,6 +67,7 @@ data Array (n :: Nat) v a = A !ShapeL !(T v a)
   deriving (Generic, Data)
 
 instance (Vector v, Show a, VecElem v a) => Show (Array n v a) where
+  {-# INLINABLE showsPrec #-}
   showsPrec p a@(A s _) = showParen (p > 10) $
     showString "fromList " . showsPrec 11 s . showString " " . showsPrec 11 (toList a)
 
