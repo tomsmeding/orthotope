@@ -17,6 +17,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RoleAnnotations #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE UndecidableInstances #-}
 -- | Arrays of dynamic size.  The arrays are polymorphic in the underlying
@@ -54,6 +55,7 @@ import Text.PrettyPrint.HughesPJClass hiding ((<>))
 import Data.Array.Internal
 
 -- | Arrays stored in a /v/ with values of type /a/.
+type role Array representational nominal
 data Array v a = A !ShapeL !(T v a)
   deriving (Generic, Data)
 

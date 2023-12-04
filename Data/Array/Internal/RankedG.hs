@@ -23,6 +23,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RoleAnnotations #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -63,6 +64,7 @@ import Text.PrettyPrint.HughesPJClass hiding ((<>))
 import Data.Array.Internal
 
 -- | Arrays stored in a /v/ with values of type /a/.
+type role Array nominal representational nominal
 data Array (n :: Nat) v a = A !ShapeL !(T v a)
   deriving (Generic, Data)
 

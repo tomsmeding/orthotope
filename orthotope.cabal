@@ -27,6 +27,8 @@ source-repository head
 library
   hs-source-dirs:      .
   ghc-options:         -Wall
+--  if impl(ghc >= 9.8)
+--      ghc-options: -Wmissing-role-annotations
   exposed-modules:     Data.Array.Convert
                      , Data.Array.Dynamic
                      , Data.Array.DynamicG

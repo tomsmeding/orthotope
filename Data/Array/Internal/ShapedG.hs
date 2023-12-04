@@ -22,6 +22,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RoleAnnotations #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -64,6 +65,7 @@ import Data.Array.Internal
 import Data.Array.Internal.Shape
 
 -- | Arrays stored in a /v/ with values of type /a/.
+type role Array nominal representational nominal
 newtype Array (sh :: [Nat]) v a = A (T v a)
   deriving (Generic, Data)
 
