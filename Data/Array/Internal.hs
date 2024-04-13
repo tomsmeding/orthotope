@@ -21,6 +21,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE QuantifiedConstraints #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RoleAnnotations #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -124,6 +125,7 @@ prettyShowL l = render . pPrintPrec l 0
 -- dimension starts you calculate vector index @offset + i*strides[0]@.
 -- To find where item /i,j/ of the two outermost dimensions is you
 -- calculate vector index @offset + i*strides[0] + j*strides[1]@, etc.
+type role T representational nominal
 data T v a = T
     { strides :: ![Int]   -- length is tensor rank
     , offset  :: !Int     -- offset into vector of values

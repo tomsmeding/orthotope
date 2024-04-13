@@ -22,6 +22,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RoleAnnotations #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -65,6 +66,7 @@ import Data.Array.Internal.Shape
 
 type Unbox = V.Storable
 
+type role Array nominal nominal
 newtype Array sh a = A { unA :: G.Array sh V.Vector a }
   deriving (Pretty, Generic, Data)
 
