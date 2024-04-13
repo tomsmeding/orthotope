@@ -169,6 +169,7 @@ unScalar = G.unScalar . unA
 
 -- | Make an array with all elements having the same value.
 -- O(1) time
+{-# INLINABLE constant #-}
 constant :: (Unbox a, KnownNat n) => ShapeL -> a -> Array n a
 constant sh = A . G.constant sh
 

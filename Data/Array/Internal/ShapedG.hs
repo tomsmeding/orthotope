@@ -70,6 +70,7 @@ newtype Array (sh :: [Nat]) v a = A (T v a)
   deriving (Generic, Data)
 
 instance (Vector v, Show a, VecElem v a, Shape sh, Show (v a)) => Show (Array sh v a) where
+  {-# INLINABLE showsPrec #-}
   showsPrec p a@(A _) = showParen (p > 10) $
     showString "fromList @" . showsPrec 11 (shapeL a) . showString" " . showsPrec 11 (toList a)
 

@@ -171,6 +171,7 @@ unScalar = G.unScalar . unA
 
 -- | Make an array with all elements having the same value.
 -- O(1) time.
+{-# INLINABLE constant #-}
 constant :: forall sh a . (Unbox a, Shape sh) =>
             a -> Array sh a
 constant = A . G.constant
